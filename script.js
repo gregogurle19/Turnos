@@ -118,3 +118,27 @@ function addDays(date, days) {
   result.setDate(result.getDate() + days);
   return result;
 }
+document.addEventListener('DOMContentLoaded', () => {
+  const startForm = document.getElementById('start-form');
+  const introForm = document.getElementById('intro-form');
+  const mainContent = document.getElementById('main-content');
+
+  startForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const name = document.getElementById('full-name').value.trim();
+    const dni = document.getElementById('dni').value.trim();
+    const dob = document.getElementById('dob').value.trim();
+
+    if (name && dni && dob) {
+      // Ocultamos el formulario inicial
+      introForm.style.display = 'none';
+
+      // Mostramos el calendario con efecto suave
+      mainContent.style.display = 'block';
+      mainContent.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      alert('Por favor completá todos los campos.');
+    }
+  });
+});
