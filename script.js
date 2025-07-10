@@ -1,5 +1,3 @@
-// script.js
-
 const TIME_INTERVALS = {
   lunes: ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30"],
   martes: ["16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00"],
@@ -8,7 +6,6 @@ const TIME_INTERVALS = {
   viernes: ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30"],
 };
 const MAX_TURNS_PER_DAY = 12;
-
 const scriptURL = 'https://script.google.com/macros/s/AKfycbyVQvnmKwVK5gNdCGWC0vMl3wYdXCJGkMouGwFjhBb-_6CBl6Vm4SoSnVJk7UK9UiVT/exec';
 
 let bookedTurns = [];
@@ -37,7 +34,6 @@ window.addEventListener('load', () => {
 });
 
 function startBooking() {
-  // Validar datos simples
   const fullName = document.getElementById('fullName').value.trim();
   const dni = document.getElementById('dni').value.trim();
   const birthDate = document.getElementById('birthDate').value;
@@ -71,7 +67,6 @@ function generateCalendar() {
 
     const isoDate = date.toISOString().split('T')[0];
 
-    // Crear botón día
     const dayBtn = document.createElement('button');
     dayBtn.textContent = isoDate;
     dayBtn.className = 'calendar-day';
@@ -107,8 +102,7 @@ function showTimesForDay(dayName, date) {
     return;
   }
 
-  // Filtrar turnos ya tomados ese día
-  const bookedForDay = bookedTurns.filter(t => t.date === date);
+  const bookedForDay = bookedTurns.filter(t => t.fecha === date);
 
   if (bookedForDay.length >= MAX_TURNS_PER_DAY) {
     timeOptionsDiv.textContent = 'Día completo. Por favor elegí otro día.';
@@ -117,7 +111,7 @@ function showTimesForDay(dayName, date) {
   }
 
   times.forEach(time => {
-    const isBooked = bookedForDay.some(t => t.time === time);
+    const isBooked = bookedForDay.some(t => t.hora === time);
     const btn = document.createElement('button');
     btn.textContent = time;
     btn.disabled = isBooked;
@@ -153,7 +147,26 @@ function sendBooking() {
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(data)
   })
+  .then(res => res.json())
+  .then(resp => {
+    if (resp.result === 'success') {
+      alert('✅ Turno reservado con éxito');
+      bookedTurns.push({ fecha: selectedDate, hora: selectedTime });
+      highlightSelectedDate(null);
+      document.getElementById('time-options').innerHTML = '';
+      document.getElementById('time-slots').classList.add('hidden');
+    } else {
+      alert('❌ ' + resp.message);
+    }
+  })
+  .catch(() => alert('Error al conectar con el servidor.'));
+}
+
+function loadBookedTurns() {
+  fetch(scriptURL)
     .then(res => res.json())
-    .then(resp => {
-      if (resp.result === 'success') {
-        alert('✅ Turno reservado con éxito
+    .then(data => {
+      bookedTurns = data;
+    })
+    .catch(() => alert('No se pudieron cargar los turnos existentes.'));
+}
