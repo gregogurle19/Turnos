@@ -1,172 +1,56 @@
-const TIME_INTERVALS = {
-  lunes: ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30"],
-  martes: ["16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00"],
-  miércoles: ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30"],
-  jueves: ["16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00"],
-  viernes: ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30"],
-};
-const MAX_TURNS_PER_DAY = 12;
-const scriptURL = 'https://script.google.com/macros/s/AKfycbyVQvnmKwVK5gNdCGWC0vMl3wYdXCJGkMouGwFjhBb-_6CBl6Vm4SoSnVJk7UK9UiVT/exec';
+const SPREADSHEET_ID = "TU_SPREADSHEET_ID";  // Cambialo por el ID de tu hoja
+const SHEET_NAME = "Turnos";                  // El nombre de la pestaña donde guardás
 
-let bookedTurns = [];
-let selectedDate = null;
-let selectedTime = null;
+function doGet() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(SHEET_NAME);
+  const data = sheet.getDataRange().getValues();
 
-window.addEventListener('load', () => {
-  // Limitar fecha max en el input nacimiento a hoy
-  const birthDateInput = document.getElementById('birthDate');
-  birthDateInput.max = new Date().toISOString().split('T')[0];
-
-  document.getElementById('personal-data-form').addEventListener('submit', e => {
-    e.preventDefault();
-    startBooking();
-  });
-
-  document.getElementById('confirm-booking-btn').addEventListener('click', () => {
-    if (!selectedDate || !selectedTime) {
-      alert('Por favor seleccioná un día y horario.');
-      return;
-    }
-    sendBooking();
-  });
-
-  loadBookedTurns();
-});
-
-function startBooking() {
-  const fullName = document.getElementById('fullName').value.trim();
-  const dni = document.getElementById('dni').value.trim();
-  const birthDate = document.getElementById('birthDate').value;
-
-  if (!fullName || !dni || !birthDate) {
-    alert('Completá todos los campos para continuar.');
-    return;
-  }
-
-  // Ocultar formulario inicial y mostrar calendario
-  document.getElementById('start-form').classList.add('hidden');
-  document.getElementById('booking-section').classList.remove('hidden');
-
-  generateCalendar();
-}
-
-function generateCalendar() {
-  const calendarDiv = document.getElementById('calendar');
-  calendarDiv.innerHTML = ''; // limpiar
-
-  const today = new Date();
-
-  for (let i = 0; i < 30; i++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + i);
-
-    const dayNumber = date.getDay(); // 0=dom, 1=lun... 5=vie, 6=sáb
-
-    // Solo lunes a viernes (1 a 5)
-    if (dayNumber < 1 || dayNumber > 5) continue;
-
-    const isoDate = date.toISOString().split('T')[0];
-
-    const dayBtn = document.createElement('button');
-    dayBtn.textContent = isoDate;
-    dayBtn.className = 'calendar-day';
-    dayBtn.dataset.date = isoDate;
-    dayBtn.dataset.dayname = date.toLocaleDateString('es-ES', { weekday: 'long' });
-
-    dayBtn.addEventListener('click', () => {
-      selectedDate = isoDate;
-      showTimesForDay(dayBtn.dataset.dayname, isoDate);
-      highlightSelectedDate(dayBtn);
+  let turnos = [];
+  // Suponiendo que la fila 1 tiene encabezados
+  for (let i = 1; i < data.length; i++) {
+    turnos.push({
+      nombre: data[i][0],
+      dni: data[i][1],
+      nacimiento: data[i][2],
+      fecha: data[i][3],
+      hora: data[i][4]
     });
-
-    calendarDiv.appendChild(dayBtn);
-  }
-}
-
-function highlightSelectedDate(button) {
-  document.querySelectorAll('.calendar-day').forEach(btn => btn.classList.remove('selected'));
-  button.classList.add('selected');
-  document.getElementById('selected-date').textContent = selectedDate;
-  document.getElementById('confirm-booking-btn').disabled = true;
-  selectedTime = null;
-}
-
-function showTimesForDay(dayName, date) {
-  const times = TIME_INTERVALS[dayName];
-  const timeOptionsDiv = document.getElementById('time-options');
-  timeOptionsDiv.innerHTML = '';
-
-  if (!times || times.length === 0) {
-    timeOptionsDiv.textContent = 'No hay horarios disponibles para este día.';
-    document.getElementById('time-slots').classList.remove('hidden');
-    return;
   }
 
-  const bookedForDay = bookedTurns.filter(t => t.fecha === date);
-
-  if (bookedForDay.length >= MAX_TURNS_PER_DAY) {
-    timeOptionsDiv.textContent = 'Día completo. Por favor elegí otro día.';
-    document.getElementById('time-slots').classList.remove('hidden');
-    return;
-  }
-
-  times.forEach(time => {
-    const isBooked = bookedForDay.some(t => t.hora === time);
-    const btn = document.createElement('button');
-    btn.textContent = time;
-    btn.disabled = isBooked;
-    btn.className = 'time-btn';
-    btn.addEventListener('click', () => {
-      selectedTime = time;
-      document.getElementById('confirm-booking-btn').disabled = false;
-      highlightSelectedTime(btn);
-    });
-    timeOptionsDiv.appendChild(btn);
-  });
-
-  document.getElementById('time-slots').classList.remove('hidden');
+  return ContentService
+    .createTextOutput(JSON.stringify(turnos))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
-function highlightSelectedTime(button) {
-  document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('selected'));
-  button.classList.add('selected');
-}
+function doPost(e) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(SHEET_NAME);
 
-function sendBooking() {
-  const data = {
-    action: 'reserve',
-    nombre: document.getElementById('fullName').value.trim(),
-    dni: document.getElementById('dni').value.trim(),
-    nacimiento: document.getElementById('birthDate').value,
-    fecha: selectedDate,
-    hora: selectedTime
-  };
+    const data = JSON.parse(e.postData.contents);
 
-  fetch(scriptURL, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(data)
-  })
-  .then(res => res.json())
-  .then(resp => {
-    if (resp.result === 'success') {
-      alert('✅ Turno reservado con éxito');
-      bookedTurns.push({ fecha: selectedDate, hora: selectedTime });
-      highlightSelectedDate(null);
-      document.getElementById('time-options').innerHTML = '';
-      document.getElementById('time-slots').classList.add('hidden');
+    if (data.action === "reserve") {
+      if (!data.nombre || !data.dni || !data.nacimiento || !data.fecha || !data.hora) {
+        return ContentService.createTextOutput(
+          JSON.stringify({ result: "error", message: "Faltan datos para reservar." })
+        ).setMimeType(ContentService.MimeType.JSON);
+      }
+
+      // Agregamos el turno
+      sheet.appendRow([data.nombre, data.dni, data.nacimiento, data.fecha, data.hora]);
+
+      return ContentService.createTextOutput(
+        JSON.stringify({ result: "success" })
+      ).setMimeType(ContentService.MimeType.JSON);
     } else {
-      alert('❌ ' + resp.message);
+      return ContentService.createTextOutput(
+        JSON.stringify({ result: "error", message: "Acción desconocida." })
+      ).setMimeType(ContentService.MimeType.JSON);
     }
-  })
-  .catch(() => alert('Error al conectar con el servidor.'));
-}
-
-function loadBookedTurns() {
-  fetch(scriptURL)
-    .then(res => res.json())
-    .then(data => {
-      bookedTurns = data;
-    })
-    .catch(() => alert('No se pudieron cargar los turnos existentes.'));
+  } catch (error) {
+    return ContentService.createTextOutput(
+      JSON.stringify({ result: "error", message: error.message })
+    ).setMimeType(ContentService.MimeType.JSON);
+  }
 }
