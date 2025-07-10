@@ -1,113 +1,159 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("personal-data-form");
-  const startForm = document.getElementById("start-form");
-  const bookingSection = document.getElementById("booking-section");
-  const calendarDiv = document.getElementById("calendar");
-  const timeSlotsDiv = document.getElementById("time-slots");
-  const timeOptionsDiv = document.getElementById("time-options");
-  const selectedDateSpan = document.getElementById("selected-date");
-  const confirmButton = document.getElementById("confirm-booking-btn");
-  const messageDiv = document.getElementById("booking-message");
+// script.js
 
-  let selectedDate = "";
-  let selectedTime = "";
+const TIME_INTERVALS = {
+  lunes: ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30"],
+  martes: ["16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00"],
+  miércoles: ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30"],
+  jueves: ["16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00"],
+  viernes: ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30"],
+};
+const MAX_TURNS_PER_DAY = 12;
 
-  form.addEventListener("submit", (e) => {
+const scriptURL = 'https://script.google.com/macros/s/AKfycbyVQvnmKwVK5gNdCGWC0vMl3wYdXCJGkMouGwFjhBb-_6CBl6Vm4SoSnVJk7UK9UiVT/exec';
+
+let bookedTurns = [];
+let selectedDate = null;
+let selectedTime = null;
+
+window.addEventListener('load', () => {
+  // Limitar fecha max en el input nacimiento a hoy
+  const birthDateInput = document.getElementById('birthDate');
+  birthDateInput.max = new Date().toISOString().split('T')[0];
+
+  document.getElementById('personal-data-form').addEventListener('submit', e => {
     e.preventDefault();
-    const fullName = document.getElementById("fullName").value.trim();
-    const dni = document.getElementById("dni").value.trim();
-    const birthDate = document.getElementById("birthDate").value;
-
-    if (fullName && dni && birthDate) {
-      startForm.classList.add("hidden");
-      bookingSection.classList.remove("hidden");
-      generateCalendar();
-    }
+    startBooking();
   });
 
-  // Rellenar input date max hoy
-  const birthInput = document.getElementById("birthDate");
-  if (birthInput) {
-    const today = new Date().toISOString().split("T")[0];
-    birthInput.max = today;
+  document.getElementById('confirm-booking-btn').addEventListener('click', () => {
+    if (!selectedDate || !selectedTime) {
+      alert('Por favor seleccioná un día y horario.');
+      return;
+    }
+    sendBooking();
+  });
+
+  loadBookedTurns();
+});
+
+function startBooking() {
+  // Validar datos simples
+  const fullName = document.getElementById('fullName').value.trim();
+  const dni = document.getElementById('dni').value.trim();
+  const birthDate = document.getElementById('birthDate').value;
+
+  if (!fullName || !dni || !birthDate) {
+    alert('Completá todos los campos para continuar.');
+    return;
   }
 
-  function generateCalendar() {
-    const today = new Date();
-    calendarDiv.innerHTML = "";
+  // Ocultar formulario inicial y mostrar calendario
+  document.getElementById('start-form').classList.add('hidden');
+  document.getElementById('booking-section').classList.remove('hidden');
 
-    for (let i = 0; i < 30; i++) {
-      const date = new Date();
-      date.setDate(today.getDate() + i);
-      const day = date.getDay(); // 0=Dom, 1=Lun...
+  generateCalendar();
+}
 
-      if (day >= 1 && day <= 5) {
-        const iso = date.toISOString().split("T")[0];
-        const div = document.createElement("div");
-        div.className = "calendar-day";
-        div.textContent = iso;
-        div.dataset.date = iso;
+function generateCalendar() {
+  const calendarDiv = document.getElementById('calendar');
+  calendarDiv.innerHTML = ''; // limpiar
 
-        div.addEventListener("click", () => {
-          selectedDate = iso;
-          selectedDateSpan.textContent = iso;
-          showTimeOptions(day);
-          scrollToElement(timeSlotsDiv);
-        });
+  const today = new Date();
 
-        calendarDiv.appendChild(div);
-      }
-    }
-  }
+  for (let i = 0; i < 30; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + i);
 
-  function showTimeOptions(day) {
-    timeOptionsDiv.innerHTML = "";
-    selectedTime = "";
-    confirmButton.disabled = true;
+    const dayNumber = date.getDay(); // 0=dom, 1=lun... 5=vie, 6=sáb
 
-    const morning = [
-      "09:00", "09:30", "10:00", "10:30",
-      "11:00", "11:30", "12:00", "12:30"
-    ];
-    const evening = [
-      "16:30", "17:00", "17:30", "18:00",
-      "18:30", "19:00", "19:30", "20:00"
-    ];
+    // Solo lunes a viernes (1 a 5)
+    if (dayNumber < 1 || dayNumber > 5) continue;
 
-    let times = [];
-    if ([1, 3, 5].includes(day)) {
-      times = morning;
-    } else if ([2, 4].includes(day)) {
-      times = evening;
-    }
+    const isoDate = date.toISOString().split('T')[0];
 
-    times.forEach(time => {
-      const btn = document.createElement("button");
-      btn.textContent = time;
-      btn.className = "slot-button";
-      btn.addEventListener("click", () => {
-        selectedTime = time;
-        document.querySelectorAll(".slot-button").forEach(b => b.classList.remove("selected"));
-        btn.classList.add("selected");
-        confirmButton.disabled = false;
-      });
-      timeOptionsDiv.appendChild(btn);
+    // Crear botón día
+    const dayBtn = document.createElement('button');
+    dayBtn.textContent = isoDate;
+    dayBtn.className = 'calendar-day';
+    dayBtn.dataset.date = isoDate;
+    dayBtn.dataset.dayname = date.toLocaleDateString('es-ES', { weekday: 'long' });
+
+    dayBtn.addEventListener('click', () => {
+      selectedDate = isoDate;
+      showTimesForDay(dayBtn.dataset.dayname, isoDate);
+      highlightSelectedDate(dayBtn);
     });
 
-    timeSlotsDiv.classList.remove("hidden");
+    calendarDiv.appendChild(dayBtn);
+  }
+}
+
+function highlightSelectedDate(button) {
+  document.querySelectorAll('.calendar-day').forEach(btn => btn.classList.remove('selected'));
+  button.classList.add('selected');
+  document.getElementById('selected-date').textContent = selectedDate;
+  document.getElementById('confirm-booking-btn').disabled = true;
+  selectedTime = null;
+}
+
+function showTimesForDay(dayName, date) {
+  const times = TIME_INTERVALS[dayName];
+  const timeOptionsDiv = document.getElementById('time-options');
+  timeOptionsDiv.innerHTML = '';
+
+  if (!times || times.length === 0) {
+    timeOptionsDiv.textContent = 'No hay horarios disponibles para este día.';
+    document.getElementById('time-slots').classList.remove('hidden');
+    return;
   }
 
-  confirmButton.addEventListener("click", () => {
-    if (!selectedDate || !selectedTime) return;
-    messageDiv.textContent = `✅ ¡Turno reservado para el ${selectedDate} a las ${selectedTime}!`;
+  // Filtrar turnos ya tomados ese día
+  const bookedForDay = bookedTurns.filter(t => t.date === date);
 
-    // Acá iría la lógica para enviar a Google Sheets con fetch
-    confirmButton.disabled = true;
-    confirmButton.textContent = "Reservado";
-    confirmButton.classList.add("reserved");
+  if (bookedForDay.length >= MAX_TURNS_PER_DAY) {
+    timeOptionsDiv.textContent = 'Día completo. Por favor elegí otro día.';
+    document.getElementById('time-slots').classList.remove('hidden');
+    return;
+  }
+
+  times.forEach(time => {
+    const isBooked = bookedForDay.some(t => t.time === time);
+    const btn = document.createElement('button');
+    btn.textContent = time;
+    btn.disabled = isBooked;
+    btn.className = 'time-btn';
+    btn.addEventListener('click', () => {
+      selectedTime = time;
+      document.getElementById('confirm-booking-btn').disabled = false;
+      highlightSelectedTime(btn);
+    });
+    timeOptionsDiv.appendChild(btn);
   });
 
-  function scrollToElement(el) {
-    el.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-});
+  document.getElementById('time-slots').classList.remove('hidden');
+}
+
+function highlightSelectedTime(button) {
+  document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('selected'));
+  button.classList.add('selected');
+}
+
+function sendBooking() {
+  const data = {
+    action: 'reserve',
+    nombre: document.getElementById('fullName').value.trim(),
+    dni: document.getElementById('dni').value.trim(),
+    nacimiento: document.getElementById('birthDate').value,
+    fecha: selectedDate,
+    hora: selectedTime
+  };
+
+  fetch(scriptURL, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  })
+    .then(res => res.json())
+    .then(resp => {
+      if (resp.result === 'success') {
+        alert('✅ Turno reservado con éxito
