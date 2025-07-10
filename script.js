@@ -142,3 +142,81 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("personal-data-form");
+  const startForm = document.getElementById("start-form");
+  const bookingSection = document.getElementById("booking-section");
+  const calendarDiv = document.getElementById("calendar");
+  const slotsContainer = document.getElementById("slots-container");
+  const slotsSection = document.getElementById("time-slots");
+
+  // Mostrar sección al completar datos
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("fullName").value.trim();
+    const dni = document.getElementById("dni").value.trim();
+    const dob = document.getElementById("birthDate").value.trim();
+
+    if (name && dni && dob) {
+      startForm.classList.add("hidden");
+      bookingSection.classList.remove("hidden");
+      generateCalendar();
+    } else {
+      alert("Completá todos los campos");
+    }
+  });
+
+  // Generar calendario
+  function generateCalendar() {
+    const today = new Date();
+    const calendarDays = [];
+
+    for (let i = 0; i < 30; i++) {
+      const date = new Date();
+      date.setDate(today.getDate() + i);
+      const day = date.getDay();
+
+      // Solo días permitidos
+      if ([1, 2, 3, 4, 5].includes(day)) {
+        const isoDate = date.toISOString().split("T")[0];
+        const div = document.createElement("div");
+        div.className = "calendar-day";
+        div.textContent = isoDate;
+        div.dataset.date = isoDate;
+        div.addEventListener("click", () => showSlots(isoDate, day));
+        calendarDiv.appendChild(div);
+      }
+    }
+  }
+
+  // Mostrar horarios según el día de la semana
+  function showSlots(date, day) {
+    const morning = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30"];
+    const evening = ["16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00"];
+
+    let availableSlots = [];
+
+    if ([1, 3, 5].includes(day)) {
+      availableSlots = morning;
+    } else if ([2, 4].includes(day)) {
+      availableSlots = evening;
+    }
+
+    slotsContainer.innerHTML = "";
+    slotsSection.classList.remove("hidden");
+
+    availableSlots.forEach((slot) => {
+      const slotDiv = document.createElement("div");
+      slotDiv.className = "slot";
+      slotDiv.textContent = slot;
+      slotDiv.addEventListener("click", () => {
+        alert(`Reservaste el ${date} a las ${slot}`);
+        // acá iría submitToSheet si conectás con Google Sheets
+      });
+      slotsContainer.appendChild(slotDiv);
+    });
+
+    slotsSection.scrollIntoView({ behavior: "smooth" });
+  }
+});
