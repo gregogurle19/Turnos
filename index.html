@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AnótateYa - Turnos Dra. Vanesa Scagliotti</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>AnótateYa</h1>
+    <h2>Turnos Dra. Vanesa Scagliotti</h2>
+
+    <div id="start-form">
+      <p>Por favor, ingresá tus datos para empezar:</p>
+      <form id="personal-data-form">
+        <label for="fullName">Nombre completo:</label>
+        <input type="text" id="fullName" name="fullName" required />
+
+        <label for="dni">DNI:</label>
+        <input type="text" id="dni" name="dni" required pattern="\d{6,10}" title="Solo números, 6 a 10 dígitos"/>
+
+        <label for="birthDate">Fecha de nacimiento:</label>
+        <input type="date" id="birthDate" name="birthDate" required max="" />
+
+        <button type="submit">Continuar</button>
+      </form>
+    </div>
+
+    <div id="booking-section" class="hidden">
+      <h3>Seleccioná un día para reservar tu turno</h3>
+      <div id="calendar"></div>
+      <div id="time-slots" class="hidden">
+        <h4>Horarios disponibles para <span id="selected-date"></span>:</h4>
+        <div id="time-options"></div>
+        <button id="confirm-booking-btn" disabled>Reservar turno</button>
+      </div>
+      <div id="booking-message"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
