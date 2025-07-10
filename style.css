@@ -249,3 +249,93 @@ button:hover {
 .hidden {
   display: none;
 }
+#calendar {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding: 10px 0;
+  margin-top: 20px;
+}
+
+.calendar-day {
+  flex: 0 0 auto;
+  background-color: #ffeb3b;
+  border-radius: 12px;
+  padding: 15px 12px;
+  cursor: pointer;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.3s ease;
+  min-width: 90px;
+  user-select: none;
+  border: 3px solid transparent;
+}
+
+.calendar-day:hover:not(.disabled):not(.selected) {
+  background-color: #ffe082;
+  transform: scale(1.1);
+}
+
+.calendar-day.selected {
+  background-color: #ff3b66;
+  color: white;
+  border-color: #ff1a3c;
+  transform: scale(1.2);
+  box-shadow: 0 0 10px #ff1a3c;
+}
+
+.calendar-day.disabled {
+  background-color: #eee;
+  color: #aaa;
+  cursor: default;
+  pointer-events: none;
+  border-color: transparent;
+  transform: none;
+}
+
+#time-slots {
+  margin-top: 25px;
+  text-align: center;
+}
+
+#time-options {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+
+.time-btn {
+  padding: 10px 18px;
+  border-radius: 15px;
+  background-color: #ffb6c1;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  min-width: 70px;
+}
+
+.time-btn:hover:not(:disabled):not(.selected) {
+  background-color: #ff6f91;
+  color: white;
+  transform: scale(1.05);
+}
+
+.time-btn.selected {
+  background-color: #ff3b66;
+  color: white;
+  border-color: #ff1a3c;
+  box-shadow: 0 0 8px #ff1a3c;
+  transform: scale(1.1);
+}
+
+.time-btn:disabled {
+  background-color: #f7b3bd;
+  color: #aaa;
+  cursor: not-allowed;
+}
