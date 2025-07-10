@@ -170,3 +170,14 @@ function loadBookedTurns() {
     })
     .catch(() => alert('No se pudieron cargar los turnos existentes.'));
 }
+function disableOtherDays(selectedBtn) {
+  document.querySelectorAll('.calendar-day').forEach(btn => {
+    if (btn !== selectedBtn) {
+      btn.classList.add('disabled');
+      btn.disabled = true;
+    } else {
+      btn.classList.remove('disabled');
+      btn.disabled = false;
+    }
+  });
+}
