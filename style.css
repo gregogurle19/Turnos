@@ -1,0 +1,176 @@
+/* Reset básico */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background: linear-gradient(135deg, #FFDEE9 0%, #B5FFFC 100%);
+  color: #333;
+  margin: 0;
+  padding: 20px;
+}
+
+.container {
+  max-width: 450px;
+  margin: 0 auto;
+  background: #fff8f0;
+  border-radius: 12px;
+  padding: 25px 30px;
+  box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+  text-align: center;
+  user-select: none;
+}
+
+h1 {
+  font-family: 'Comic Sans MS', cursive;
+  color: #ff6f91;
+  margin-bottom: 5px;
+  font-size: 2.8rem;
+}
+
+h2 {
+  font-weight: 400;
+  margin-bottom: 25px;
+  color: #4a4a4a;
+}
+
+form label {
+  display: block;
+  text-align: left;
+  margin: 12px 0 5px 0;
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #ff6584;
+}
+
+form input[type="text"],
+form input[type="date"] {
+  width: 100%;
+  padding: 8px 10px;
+  border: 2px solid #ffb6c1;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+form input[type="text"]:focus,
+form input[type="date"]:focus {
+  border-color: #ff6f91;
+  outline: none;
+}
+
+button {
+  margin-top: 20px;
+  background-color: #ff6f91;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 1.2rem;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:disabled {
+  background-color: #f7b3bd;
+  cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+  background-color: #e0506f;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Calendario */
+
+#calendar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); /* lunes a viernes */
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.day {
+  background-color: #ffdde9;
+  border-radius: 10px;
+  padding: 18px 0;
+  font-weight: bold;
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  user-select: none;
+  border: 3px solid transparent;
+}
+
+.day:hover {
+  background-color: #ff6f91;
+  color: white;
+}
+
+.day.selected {
+  background-color: #ff6584;
+  color: white;
+  border-color: #ff3b66;
+  transform: scale(1.1);
+  box-shadow: 0 0 8px #ff3b66;
+}
+
+/* Horarios */
+
+#time-slots {
+  margin-top: 25px;
+  text-align: center;
+}
+
+#time-options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.time-option {
+  padding: 12px 20px;
+  border-radius: 12px;
+  background-color: #ffb6c1;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.time-option:hover:not(.disabled) {
+  background-color: #ff6f91;
+  color: white;
+}
+
+.time-option.selected {
+  background-color: #ff3b66;
+  color: white;
+  border-color: #ff3b66;
+  transform: scale(1.1);
+  box-shadow: 0 0 8px #ff3b66;
+}
+
+.time-option.disabled {
+  background-color: #f7b3bd;
+  cursor: not-allowed;
+  color: #bbb;
+  border-color: transparent;
+  pointer-events: none;
+}
+
+/* Mensajes */
+
+#booking-message {
+  margin-top: 20px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #ff3b66;
+}
