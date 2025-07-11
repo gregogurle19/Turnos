@@ -6,7 +6,7 @@ const TIME_INTERVALS = {
   viernes: ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30"],
 };
 const MAX_TURNS_PER_DAY = 12;
-const scriptURL = 'https://script.google.com/macros/s/AKfycbxuPokpUqppsHZohTS1fFAP_EYHGLbeJKPpRYloTI5eFCDvDkPTzeYA-O2e9mY2L6km2A/exec';
+const scriptURL = 'https://script.google.com/macros/s/AKfycbzxyhG0UyNjT7ALXgAbqbyOgfYMS5x93QIYhBBXvP9tOiRocDv8q1sJoAXELzFu-FnjqA/exec';
 
 let bookedTurns = [];
 let selectedDate = null;
